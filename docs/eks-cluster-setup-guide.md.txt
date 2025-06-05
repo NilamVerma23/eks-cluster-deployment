@@ -1,0 +1,128 @@
+# EKS Cluster Setup Guide
+
+This guide walks you through setting up an **Amazon EKS (Elastic Kubernetes Service)** cluster, including VPC creation using **CloudFormation**, EKS cluster provisioning, node group creation, and deploying a sample Kubernetes application.
+
+---
+
+ Prerequisites
+
+Ensure the following tools are installed on your system:
+
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
+- [eksctl](https://eksctl.io/)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Docker](https://docs.docker.com/get-docker/)
+- [Git](https://git-scm.com/)
+- AWS credentials configured via `aws configure`
+
+---
+
+ Steps Overview
+
+1. Create a VPC using CloudFormation
+2. Create an EKS Cluster
+3. Add a Node Group
+4. Deploy a sample Kubernetes app
+5. Verify deployment
+
+---
+
+ Step 1: Create VPC via CloudFormation
+
+1. Log in to the [AWS Console](https://console.aws.amazon.com/)
+2. Go to **CloudFormation** service
+3. Click **Create Stack > With new resources (standard)**
+4. Under “Template source”, choose **Upload a template file**
+5. Upload the file: `cloudformation/amazon-vpc.yaml`
+6. Provide a stack name (e.g., `nilam-vpc-stack`)
+7. Click **Next** and proceed with default settings
+8. Wait for the status to become `CREATE_COMPLETE`
+
+ _Screenshot:_
+![VPC Stack](../screenshots/vpc-stack-complete.png)
+
+---
+
+ Step 2: Create an EKS Cluster
+
+1. Navigate to **EKS > Clusters > Add Cluster > Create**
+2. Cluster name: `nilam-eks-cluster`
+3. Select the IAM role: `EKSRole` (created beforehand or provided)
+4. In networking, select the VPC and subnets created via CloudFormation
+5. Proceed with default values, and click **Create**
+
+ Takes about 10–15 minutes.
+
+ _Screenshot:_
+![EKS Cluster Active](../screenshots/eks-cluster-active.png)
+
+---
+
+ Step 3: Add a Node Group
+
+1. Inside your EKS Cluster, go to the **Compute > Node Groups** section
+2. Click **Add Node Group**
+3. Name it (e.g., `nilam-node-group`)
+4. Choose the IAM role: `eks-node-role`
+5. Configure scaling:
+   - Desired size: 1
+   - Min size: 1
+   - Max size: 4
+6. Create the node group
+
+---
+
+ Step 4: Connect to Your Cluster
+Run these commands from your terminal:
+
+```bash
+aws eks --region eu-west-1 update-kubeconfig --name nilam-eks-cluster
+
+Verify access:
+kubectl get nodes
+
+---
+
+ Step 5:Deploy my-game-app
+(1) Create a deployment file:
+vi deployment.yaml
+
+(2) Paste the following content:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-game-app-deployment
+  labels:
+    app: my-game-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-game-app
+  template:
+    metadata:
+      labels:
+        app: my-game-app
+    spec:
+      containers:
+      - name: my-game-app
+        image: akiladoc/node-web-app
+        ports:
+        - containerPort: 80
+
+(3) Apply the deployment:
+kubectl apply -f deployment.yaml
+
+(4) Verify pods and deployment:
+kubectl get deployments
+kubectl get pods
+
+ Success Criteria
+Cluster and node group show Active status
+Nodes appear under kubectl get nodes
+Pods are running from your deployment
+
+ Related Files
+cloudformation/amazon-vpc.yaml – VPC template
+kubernetes/deployment.yaml – Kubernetes deployment
+screenshots/ – Verification outputs
