@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-game-app-deployment
+  labels:
+    app: my-game-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-game-app
+  template:
+    metadata:
+      labels:
+        app: my-game-app
+    spec:
+      containers:
+      - name: my-game-app
+        image: akiladoc/node-web-app
+        ports:
+        - containerPort: 80
