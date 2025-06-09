@@ -66,7 +66,6 @@ I’ve written a step-by-step guide for the full setup process. You can find it 
 
 Once everything is done, these commands will show the running resources:
 
-```bash
 kubectl get nodes
 kubectl get deployments
 kubectl get pods
